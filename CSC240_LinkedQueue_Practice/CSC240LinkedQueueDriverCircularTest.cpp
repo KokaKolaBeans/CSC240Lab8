@@ -1,19 +1,12 @@
-//============================================================================
+//========================================================================
 // Name        : CSC240_Queue_Linked.cpp
-// Author      : Kazim Zaidi
-// Version     : 9/23/2026
-// Copyright   : I'll fucking shoot you
-// Description : Make this bitch circular
-//============================================================================
-// Header file for Queue ADT.
-// Template version of the Linked Queue using a front and rear pointer.
-// #include "QueLinkedCircular.h"
+// Author      : Ivan Temesvari; Rewritten to Circular by Kazim Zaidi
+// Version     : 9/25/2026
+// Description : Linked Q -> Linked Q Circular; Implement Rule-of-Three
+//========================================================================
 
 #include <iostream>
-#include <new>
-#include <iostream>
-#include <cstddef>
-
+// #include "QueType.h"
 using namespace std;
 
 template <class ItemType>
@@ -67,10 +60,11 @@ public:
     void Print();
     // Function: Display the contents of the QueType in the console output.
     // Post: The QueType remains unchanged.
+    QueType<ItemType> &QueType<ItemType>::operator=(const QueType &anotherQue);
 
 private:
-    //    NodeType<ItemType> *front;
     NodeType<ItemType> *rear;
+    int length;
 };
 
 template <class ItemType>
@@ -83,7 +77,7 @@ void QueType<ItemType>::Print() // rewrote to circular
     else
     {
         NodeType<ItemType> *tempPtr = rear;
-        tempPtr->next;
+        tempPtr = tempPtr->next;
         std::cout << "Front:";
         while (tempPtr != rear)
         {
@@ -95,41 +89,48 @@ void QueType<ItemType>::Print() // rewrote to circular
 }
 
 template <class ItemType>
+
 QueType<ItemType>::QueType() // Class constructor. // rewrote to circular
 // Post:  front and rear are set to NULL.
 {
-    // front = nullptr;
     rear = nullptr;
+    length = 0;
 }
 
 template <class ItemType>
+
 void QueType<ItemType>::MakeEmpty() // rewrote to circular
+
 // Post: Queue is empty; all elements have been deallocated.
 {
+    if (IsEmpty()) // special case 0-node
+    {
+        return; // throwing here is a poor design decision
+    }
+
     NodeType<ItemType> *tempPtr;
+    tempPtr = rear->next; // tempPtr -> first node
+    rear->next = nullptr; // final element is marked
 
-    tempPtr = rear->next; // tempPtr pointing at first node
-
-    rear->next = nullptr;
-
-    while (tempPtr->next != nullptr)
+    while (tempPtr->next != nullptr) // after while, tempPtr -> final node
     {
         rear = tempPtr;
         tempPtr = tempPtr->next;
         delete rear;
     }
-    delete tempPtr; // tempPtr is nullptr -> reads the address after the disconnected rear node
-    rear = nullptr;
+    delete tempPtr; // final node; special case 1-node;
+    rear = nullptr; // empty queue invariant
+    length = 0;
 }
 
 // Class destructor.
-template <class ItemType>
+template <class ItemType> // this works - no backing structure to delete after MakeEmpty(); no rewrite to circular
 QueType<ItemType>::~QueType()
 {
     MakeEmpty();
 }
 
-template <class ItemType>
+template <class ItemType> // no rewrite to circular
 bool QueType<ItemType>::IsFull() const
 // Returns true if there is no room for another ItemType
 //  on the free store; false otherwise.
@@ -147,11 +148,12 @@ bool QueType<ItemType>::IsFull() const
     }
 }
 
-template <class ItemType>
+template <class ItemType> // rewrote to circular
 bool QueType<ItemType>::IsEmpty() const
 // Returns true if there are no elements on the queue; false otherwise.
 {
-    return (rear == nullptr);
+    // return (rear == nullptr);
+    return (length == 0);
 }
 
 template <class ItemType>
@@ -166,7 +168,7 @@ void QueType<ItemType>::Enqueue(ItemType newItem) // rewrote to circular
         throw FullQueue();
     else
     {
-        NodeType<ItemType> newNode;
+        NodeType<ItemType> *newNode;
         newNode = new NodeType<ItemType>; // pointer to newNode
         newNode->info = newItem;
 
@@ -181,11 +183,12 @@ void QueType<ItemType>::Enqueue(ItemType newItem) // rewrote to circular
             rear->next = newNode;
             rear = newNode;
         }
+        length++;
         // rear = newNode;
     }
 }
 
-template <class ItemType>
+template <class ItemType> // rewrote to circular
 void QueType<ItemType>::Dequeue(ItemType &item)
 // Removes front item from the queue and returns it in item.
 // Pre:  Queue has been initialized and is not empty.
@@ -193,62 +196,72 @@ void QueType<ItemType>::Dequeue(ItemType &item)
 //       removed and a copy returned in item;
 //       othersiwe a EmptyQueue exception has been thrown.
 {
-    if (IsEmpty())
+    if (IsEmpty()) // special case 0-node
+    {
         throw EmptyQueue();
-    else
+    }
+    else if (rear->next == rear) // special case 1-node
+    {
+        delete rear;
+        rear = nullptr;
+    }
+    else // general case n-node
     {
 
         NodeType<ItemType> *tempPtr;
 
         tempPtr = rear->next;          // tempPtr points to first element
         rear->next = rear->next->next; // last element points to second element
-        delete tmpPtr;
+        delete tempPtr;
+    }
+    length--;
+    return;
+}
+
+template <class ItemType> // rewrote to circular
+QueType<ItemType>::QueType(const QueType &anotherQue)
+{
+    NodeType<ItemType> *ptr1;
+    NodeType<ItemType> *ptr2;
+    if (anotherQue.IsEmpty()) // special case 0-node
+    {
+        length = 0;
+        rear = nullptr;
+        return;
+    }
+    else if (anotherQue.rear->next == anotherQue.rear) // special case 1-node
+    {
+        ptr1 = new NodeType<ItemType>;
+        ptr2 = anotherQue.rear;
+        ptr1->info = ptr2->info;
+        rear = ptr1;
+        length = 1;
+        return;
+    }
+    else // general case n-node
+    {
+
+        ptr2 = anotherQue.rear->next;
+        ptr1 = new NodeType<ItemType>;
+        NodeType<ItemType> *front = ptr1;
+        ptr1->info = ptr2->info;
+        for (int k = 0; k < anotherQue.length - 1; k++)
+        {
+            ptr2 = ptr2->next;
+            ptr1->next = new NodeType<ItemType>;
+            ptr1 = ptr1->next;
+            ptr1->info = ptr2->info;
+        }
+        ptr1->next = front;
+        length = anotherQue.length;
+        rear = ptr1;
     }
 }
 
 template <class ItemType>
-QueType<ItemType>::QueType(const QueType &anotherQue)
+QueType<ItemType> &QueType<ItemType>::operator=(const QueType &anotherQue)
 {
-
-    NodeType<ItemType> *ptr1;
-    NodeType<Itemtype> *ptr2;
-
-    if (anotherQue.rear == nullptr)
-    {
-        rear == nullptr;
-    }
-    ptr1 = anotherQue->rear;
-    ptr2 = new NodeType<ItemType>;
-
-    else
-    {
-        ptr1 = rear->next;
-
-        while (ptr1->next != rear)
-        {
-            ptr2 = new NodeType<ItemType>;
-            ptr2->info = ptr1
-        }
-    }
-
-    if (anotherQue.front == nullptr)
-        front = nullptr;
-    else
-    {
-        front = new NodeType<ItemType>;
-        front->info = anotherQue.front->info;
-        ptr1 = anotherQue.front->next;
-        ptr2 = front;
-        while (ptr1 != nullptr)
-        {
-            ptr2->next = new NodeType<ItemType>;
-            ptr2 = ptr2->next;
-            ptr2->info = ptr1->info;
-            ptr1 = ptr1->next;
-        }
-        ptr2->next = NULL;
-        rear = ptr2;
-    }
+    return *this;
 }
 
 int main()

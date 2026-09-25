@@ -1,7 +1,7 @@
 // Header file for Queue ADT.
 // Template version of the Linked Queue using a front and rear pointer.
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef QUEUELINKEDCIRCULAR_H
+#define QUEUELINKEDCIRCULAR_H
 #include <new>
 #include <iostream>
 #include <cstddef>
