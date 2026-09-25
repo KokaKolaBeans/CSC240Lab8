@@ -1,10 +1,20 @@
+//============================================================================
+// Name        : CSC240_Queue_Linked.cpp
+// Author      : Kazim Zaidi
+// Version     : 9/23/2026
+// Copyright   : I'll fucking shoot you
+// Description : Make this bitch circular
+//============================================================================
 // Header file for Queue ADT.
 // Template version of the Linked Queue using a front and rear pointer.
-#ifndef QUEUE_H
-#define QUEUE_H
+// #include "QueLinkedCircular.h"
+
+#include <iostream>
 #include <new>
 #include <iostream>
 #include <cstddef>
+
+using namespace std;
 
 template <class ItemType>
 
@@ -203,8 +213,23 @@ QueType<ItemType>::QueType(const QueType &anotherQue)
     NodeType<ItemType> *ptr1;
     NodeType<Itemtype> *ptr2;
 
+    if (anotherQue.rear == nullptr)
+    {
+        rear == nullptr;
+    }
     ptr1 = anotherQue->rear;
-    ptr2 = rear;
+    ptr2 = new NodeType<ItemType>;
+
+    else
+    {
+        ptr1 = rear->next;
+
+        while (ptr1->next != rear)
+        {
+            ptr2 = new NodeType<ItemType>;
+            ptr2->info = ptr1
+        }
+    }
 
     if (anotherQue.front == nullptr)
         front = nullptr;
@@ -225,4 +250,21 @@ QueType<ItemType>::QueType(const QueType &anotherQue)
         rear = ptr2;
     }
 }
-#endif
+
+int main()
+{
+    QueType<int> q;
+    q.Enqueue(8);
+    q.Enqueue(6);
+    q.Enqueue(7);
+    q.Enqueue(5);
+    q.Enqueue(3);
+    q.Enqueue(0);
+    q.Enqueue(9);
+    q.Print();
+    int numFront;
+    q.Dequeue(numFront);
+    cout << numFront << endl;
+    q.Print();
+    return 0;
+}
